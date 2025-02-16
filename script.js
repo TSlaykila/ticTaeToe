@@ -23,9 +23,15 @@ const Gameboard = (function(){
             return true
         }
         return false
+
     }
 
-    return {getBoard, resetboard, placeMarker}
+    function printBoard() {
+        console.log("\n");
+        board.forEach(row => console.log(row.join(" | ")));
+        console.log("\n");
+    }
+    return {getBoard, resetboard, placeMarker, printBoard}
 })();
 
 const Players = (function(){
@@ -51,6 +57,8 @@ const Game = (function(){
 
     function startgame(){
         console.log("Game has Started")
+        Gameboard.printBoard()
+        turn = 0
     };
 
    
@@ -61,7 +69,9 @@ const Game = (function(){
         } else {
             turn = 0;
         }
-        console.log(`It's now ${Players.getPlayers()[turn].name}'s turn`);
+        if (!gameOver) {
+            console.log(`It's now ${Players.getPlayers(turn).name}'s turn`);
+        }
     }
     
 
@@ -129,7 +139,7 @@ const Game = (function(){
 
         function makeMove(row, col){
             if (gameOver) {
-                console.log("Game over! Start a new gameOver.")
+                console.log("Game over! Start a new game.")
             }
 
             let plotted = Gameboard.placeMarker(row, col, Players.getMarker(turn));
@@ -145,6 +155,7 @@ const Game = (function(){
             } else {
                 console.log("Invalid Move! Spot already taken.")
             }
+            Gameboard.printBoard()
         }
 
     return {startgame,switchTurn, checkWinner, makeMove, isTie}
