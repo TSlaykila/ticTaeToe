@@ -56,10 +56,9 @@ const Game = (function(){
     let gameOver = false;
 
     function startgame(){
-        console.log("Game has Started")
-        Gameboard.resetboard()
-        Gameboard.printBoard()
-        turn = 0
+        Gameboard.resetboard();
+        turn = 0;
+        gameOver = false;
     };
 
    
@@ -70,9 +69,6 @@ const Game = (function(){
         } else {
             turn = 0;
         }
-        if (!gameOver) {
-            console.log(`It's now ${Players.getPlayers(turn).name}'s turn`);
-        }
     }
     
 
@@ -82,7 +78,7 @@ const Game = (function(){
 
     function checkWinner(){
         let marker = Players.getMarker(turn);
-        let board = Gameboard.getBoard()
+        let board = Gameboard.getBoard();
         for (let j = 0; j < 3; j++) {
             let points = 0
             //checks vertical winner
@@ -136,29 +132,98 @@ const Game = (function(){
                 }
                 j++
             }
+            return false;
         }
 
         function makeMove(row, col){
-            if (gameOver) {
-                console.log("Game over! Start a new game.")
-            }
-                if (!gameOver){
+            if (gameOver) {return};
+
+               
                 let plotted = Gameboard.placeMarker(row, col, Players.getMarker(turn));
                 if (plotted) {
-                    if (isTie()){
-                        gameOver = true
-                    };
-                    if (checkWinner()){
-                        gameOver = true
-                    };
-                    
-                    switchTurn();
-                } else {
-                    console.log("Invalid Move! Spot already taken.")
+                    if (checkWinner()) {  // If someone wins, stop checking for ties
+                        gameOver = true;
+                    } else if (isTie()) {  // Only check for a tie if no one has won
+                        gameOver = true;
+                    } else {
+                        switchTurn();
+                    }
                 }
-                Gameboard.printBoard()
-            }
+                    
+                DisplayController.updateMessage();
+
+                }
+            
+             
+
+        function getTurn(){
+            return turn;
         }
 
-    return {startgame,switchTurn, checkWinner, makeMove, isTie}
+    return {startgame, switchTurn, checkWinner, makeMove, isTie, getTurn}
 })();
+
+const DisplayController = (function () {
+    const boardElement = document.querySelector(".board")
+    const messageElement = document.querySelector(".message")
+    const restartButton = document.querySelector(".restart")
+
+    function renderBoard(){
+        boardElement.innerHTML = ""
+        let board = Gameboard.getBoard();
+    
+
+    board.forEach((row, rowIndex) => {
+        row.forEach((cell, colIndex) => {
+            const cellElement = document.createElement("div");
+            cellElement.classList.add("cell");
+            cellElement.dataset.row = rowIndex;
+            cellElement.dataset.col = colIndex;
+            cellElement.textContent = cell;
+            
+            // Disable clicking if already taken
+            if (cell !== "") {
+                cellElement.classList.add("taken");
+            }
+
+            cellElement.addEventListener("click", handleCellClick)
+            boardElement.appendChild(cellElement)
+        });
+    });
+    }
+
+    function handleCellClick(event) {
+        let row = event.target.dataset.row;
+        let col = event.target.dataset.col;
+
+        if (!event.target.classList.contains("taken")) {
+            Game.makeMove(parseInt(row), parseInt(col));
+            renderBoard();
+            updateMessage();
+        }
+    }
+
+    function updateMessage() {
+        if (Game.checkWinner ()) {
+            messageElement.textContent = `${Players.getPlayers(Game.getTurn()).name} Wins!`
+        } else if (Game.isTie()) {
+            messageElement.textContent = "It's a Tie!";
+        } else {
+            messageElement.textContent = `Player ${Players.getMarker(Game.getTurn())}'s turn`
+        }
+    }
+
+    function restartGame() {
+        Game.startgame();
+        renderBoard();
+        updateMessage();
+    }
+
+    restartButton.addEventListener("click", restartGame);
+
+    return {renderBoard, updateMessage};
+
+})();
+
+Game.startgame();
+DisplayController.renderBoard();
