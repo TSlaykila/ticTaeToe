@@ -57,6 +57,7 @@ const Game = (function(){
 
     function startgame(){
         console.log("Game has Started")
+        Gameboard.resetboard()
         Gameboard.printBoard()
         turn = 0
     };
@@ -141,21 +142,22 @@ const Game = (function(){
             if (gameOver) {
                 console.log("Game over! Start a new game.")
             }
-
-            let plotted = Gameboard.placeMarker(row, col, Players.getMarker(turn));
-            if (plotted) {
-                if (isTie()){
-                    gameOver = true
-                };
-                if (checkWinner()){
-                    gameOver = true
-                };
-                
-                switchTurn();
-            } else {
-                console.log("Invalid Move! Spot already taken.")
+                if (!gameOver){
+                let plotted = Gameboard.placeMarker(row, col, Players.getMarker(turn));
+                if (plotted) {
+                    if (isTie()){
+                        gameOver = true
+                    };
+                    if (checkWinner()){
+                        gameOver = true
+                    };
+                    
+                    switchTurn();
+                } else {
+                    console.log("Invalid Move! Spot already taken.")
+                }
+                Gameboard.printBoard()
             }
-            Gameboard.printBoard()
         }
 
     return {startgame,switchTurn, checkWinner, makeMove, isTie}
